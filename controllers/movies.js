@@ -75,7 +75,12 @@ const deleteMovie = (req, res, next) => {
           res.send({ message: 'Фильм удален.' });
         });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return next(new BadRequestError('Переданы некорректные данные.'));
+      }
+      next(err);
+    });;
 };
 
 module.exports = {

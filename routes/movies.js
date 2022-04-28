@@ -39,7 +39,7 @@ router.post('/movies', auth, celebrate({
       .messages(errorMessages),
   }),
 }), createMovie);
-router.delete('/movies/:movieId', auth, celebrate({
+router.delete('/movies/:id', auth, celebrate({
   params: Joi.object().keys({
     id: Joi.string().hex().required()
       .label('id фильма'),

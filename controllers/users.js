@@ -13,7 +13,7 @@ const createUser = (req, res, next) => {
   User.findOne({ email })
     .then((user) => {
       if (user) {
-        throw new ConflictError('Такой пользователь уже существует');
+        throw new ConflictError(ERR_CONFLICT_MSG_SAMEUSER);
       } else {
         return bcrypt.hash(password, 10);
       }
@@ -25,17 +25,13 @@ const createUser = (req, res, next) => {
     }))
     .then(() => {
       res.status(201).send({
-        data: {
+        user: {
           name, email,
         },
       });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные'));
-      } else {
-        next(err);
-      }
+      next(err);
     });
 };
 
@@ -45,21 +41,31 @@ const updateUserProfile = (req, res, next) => {
     email,
   } = req.body;
   const id = req.user._id;
-  if (!name || !email) {
-    throw new BadRequestError('Переданы некорректные данные');
-  }
   User.findByIdAndUpdate(id, {
     name,
     email,
   }, {
     new: true,
-    runValidators: true,
   })
+    .orFail(() => next(new NotFoundError('Невозможно отобразить информацию о пользователе')))
     .then((user) => {
-      res.send(user);
+      res.send({
+        message: 'Информация о пользователе обновлена.',
+        name: user.name,
+        email: user.email,
+      });
     })
-    .catch((err) => next(err));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return next(new BadRequestError('Переданы некорректные данные.'));
+      }
+      if (err.name === 'MongoServerError') {
+        return next(new ConflictError('Пользователь с таким email уже существует.'));
+      }
+      next(err);
+    });
 };
+
 
 const getCurrentUser = (req, res, next) => {
   const id = req.user._id;

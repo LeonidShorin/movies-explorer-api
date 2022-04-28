@@ -5,17 +5,14 @@ const UnauthorizedError = require('../errors/UnauthorizedError');
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
     minLength: 2,
     maxLength: 30,
+    required: true,
   },
   email: {
     type: String,
     required: true,
     unique: true,
-    validate: {
-      validator: (value) => validator.isEmail(value),
-    },
   },
   password: {
     type: String,
