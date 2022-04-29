@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 const Movie = require('../models/movie');
 
 const NotFoundError = require('../errors/NotFoundError');
@@ -60,9 +61,9 @@ const createMovie = (req, res, next) => {
 };
 
 const deleteMovie = (req, res, next) => {
-  const { movieId } = req.params;
+  const { id } = req.params;
   const owner = req.user._id;
-  Movie.findById(movieId)
+  Movie.findById(id)
     .then((movie) => {
       if (!movie) {
         return next(new NotFoundError('Фильм не найден.'));
@@ -80,11 +81,11 @@ const deleteMovie = (req, res, next) => {
         return next(new BadRequestError('Переданы некорректные данные.'));
       }
       next(err);
-    });;
+    });
 };
 
 module.exports = {
   getOwnMovies,
   createMovie,
   deleteMovie,
-}
+};

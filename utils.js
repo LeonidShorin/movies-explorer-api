@@ -16,7 +16,6 @@ const errorMessages = {
   'string.hex': 'Некорректный формат {#label}. Должна быть строка из 24 символов.',
 };
 
-
 module.exports = {
   ERR_NOT_FOUND,
   ERR_BAD_REQUEST,

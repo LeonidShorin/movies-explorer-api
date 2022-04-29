@@ -18,6 +18,7 @@ async function start() {
     useNewUrlParser: true,
   });
   app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
     console.log(`App listening on PORT ${PORT}`);
   });
 }
@@ -27,7 +28,7 @@ start()
       origin: ['http://localhost:3001',
         'http://localhost:3000',
         'http://api.movexplorerbyleonid.nomoredomains.work',
-        'https://api.movexplorerbyleonid.nomoredomains.work'
+        'https://api.movexplorerbyleonid.nomoredomains.work',
       ],
       credentials: true,
     }));
@@ -43,6 +44,7 @@ start()
     app.use(generalErrorHandler);
   })
   .catch(() => {
+    // eslint-disable-next-line no-console
     console.log('Что-то пошло не так.');
     process.exit();
   });

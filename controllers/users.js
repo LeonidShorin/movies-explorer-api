@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const ConflictError = require('../errors/ConflictError');
@@ -13,7 +14,7 @@ const createUser = (req, res, next) => {
   User.findOne({ email })
     .then((user) => {
       if (user) {
-        throw new ConflictError(ERR_CONFLICT_MSG_SAMEUSER);
+        throw new ConflictError('Данный пользователь уже существует.');
       } else {
         return bcrypt.hash(password, 10);
       }
@@ -59,13 +60,12 @@ const updateUserProfile = (req, res, next) => {
       if (err.name === 'CastError') {
         return next(new BadRequestError('Переданы некорректные данные.'));
       }
-      if (err.name === 'MongoServerError') {
+      if (err.code === 11000) {
         return next(new ConflictError('Пользователь с таким email уже существует.'));
       }
       next(err);
     });
 };
-
 
 const getCurrentUser = (req, res, next) => {
   const id = req.user._id;
