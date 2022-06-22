@@ -10,9 +10,6 @@ const getOwnMovies = (req, res, next) => {
   const owner = req.user._id;
   Movie.find({ owner })
     .then((movies) => {
-      if (movies.length === 0) {
-        return next(new NotFoundError('Отсутствуют сохраненные фильмы.'));
-      }
       res.send(movies);
     })
     .catch((err) => {
@@ -49,8 +46,8 @@ const createMovie = (req, res, next) => {
         owner,
       });
     })
-    .then(() => {
-      res.status(201).send({ message: 'Фильм сохранён.' });
+    .then((movie) => {
+      res.status(201).send(movie);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -73,7 +70,7 @@ const deleteMovie = (req, res, next) => {
       }
       return movie.remove()
         .then(() => {
-          res.send({ message: 'Фильм удален.' });
+          res.send(movie);
         });
     })
     .catch((err) => {

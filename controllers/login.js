@@ -11,6 +11,8 @@ const login = (req, res, next) => {
       res.cookie('jwt', token, {
         httpOnly: true,
         maxAge: 6.048e+8,
+        sameSite: 'none',
+        secure: true,
       });
       res.send({ message: 'Token sent to cookie.' });
     })
