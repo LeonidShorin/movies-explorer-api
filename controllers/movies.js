@@ -1,24 +1,12 @@
-/* eslint-disable consistent-return */
 const Movie = require('../models/movie');
-
-const NotFoundError = require('../errors/NotFoundError');
-const ForbiddenError = require('../errors/ForbiddenError');
-const ConflictError = require('../errors/ConflictError');
-const BadRequestError = require('../errors/BadRequestError');
-
-const getOwnMovies = (req, res, next) => {
-  const owner = req.user._id;
-  Movie.find({ owner })
-    .then((movies) => {
-      res.send(movies);
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return next(new BadRequestError('Переданы некорректные данные.'));
-      }
-      next(err);
-    });
-};
+const ConflictError = require('../errors/ConflictError409');
+const NotFoundError = require('../errors/NotFoundError404');
+const ForbiddenError = require('../errors/ForbiddenError403');
+const {
+  ERR_CONFLICT_MSG_SAMEMOVIE, ERR_NOT_FOUND_MSG_MOVIE, ERR_FORBIDDEN_MSG_MOVIE,
+  ERR_BAD_REQUEST_MSG_INCORRECT_DATA,
+} = require('../constants');
+const BadRequestError = require('../errors/BadRequestError400');
 
 const createMovie = (req, res, next) => {
   const {
@@ -29,7 +17,7 @@ const createMovie = (req, res, next) => {
   Movie.findOne({ owner, movieId })
     .then((movie) => {
       if (movie) {
-        return next(new ConflictError('Такой фильм уже существует.'));
+        return next(new ConflictError(ERR_CONFLICT_MSG_SAMEMOVIE));
       }
       return Movie.create({
         country,
@@ -51,7 +39,7 @@ const createMovie = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return next(new BadRequestError('Переданы некорректные данные.'));
+        return next(new BadRequestError(ERR_BAD_REQUEST_MSG_INCORRECT_DATA));
       }
       next(err);
     });
@@ -63,10 +51,10 @@ const deleteMovie = (req, res, next) => {
   Movie.findById(id)
     .then((movie) => {
       if (!movie) {
-        return next(new NotFoundError('Фильм не найден.'));
+        return next(new NotFoundError(ERR_NOT_FOUND_MSG_MOVIE));
       }
       if (!movie.owner.equals(owner)) {
-        return next(new ForbiddenError('Нельзя удалить чужой фильм.'));
+        return next(new ForbiddenError(ERR_FORBIDDEN_MSG_MOVIE));
       }
       return movie.remove()
         .then(() => {
@@ -75,14 +63,24 @@ const deleteMovie = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return next(new BadRequestError('Переданы некорректные данные.'));
+        return next(new BadRequestError(ERR_BAD_REQUEST_MSG_INCORRECT_DATA));
       }
       next(err);
     });
 };
 
-module.exports = {
-  getOwnMovies,
-  createMovie,
-  deleteMovie,
+const getSavedMovies = (req, res, next) => {
+  const owner = req.user._id;
+  Movie.find({ owner })
+    .then((movies) => {
+      res.send(movies);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return next(new BadRequestError(ERR_BAD_REQUEST_MSG_INCORRECT_DATA));
+      }
+      next(err);
+    });
 };
+
+module.exports = { createMovie, deleteMovie, getSavedMovies };

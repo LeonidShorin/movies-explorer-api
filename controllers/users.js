@@ -1,9 +1,15 @@
-/* eslint-disable consistent-return */
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
-const ConflictError = require('../errors/ConflictError');
-const BadRequestError = require('../errors/BadRequestError');
-const NotFoundError = require('../errors/NotFoundError');
+const ConflictError = require('../errors/ConflictError409');
+const NotFoundError = require('../errors/NotFoundError404');
+const BadRequestError = require('../errors/BadRequestError400');
+const {
+  ERR_CONFLICT_MSG_SAMEUSER,
+  ERR_NOT_FOUND_MSG_USER,
+  MSG_USER_UPDATED,
+  ERR_BAD_REQUEST_MSG_INCORRECT_DATA,
+  ERR_CONFLICT_MSG_SAMEEMAIL,
+} = require('../constants');
 
 const createUser = (req, res, next) => {
   const {
@@ -26,7 +32,7 @@ const createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.code === 11000) {
-        return next(new ConflictError('Такой пользователь уже существует.'));
+        return next(new ConflictError(ERR_CONFLICT_MSG_SAMEUSER));
       }
       next(err);
     });
@@ -44,20 +50,20 @@ const updateUserProfile = (req, res, next) => {
   }, {
     new: true,
   })
-    .orFail(() => next(new NotFoundError('Невозможно отобразить информацию о пользователе')))
+    .orFail(() => next(new NotFoundError(ERR_NOT_FOUND_MSG_USER)))
     .then((user) => {
       res.send({
-        message: 'Информация о пользователе обновлена.',
+        message: MSG_USER_UPDATED,
         name: user.name,
         email: user.email,
       });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return next(new BadRequestError('Переданы некорректные данные.'));
+        return next(new BadRequestError(ERR_BAD_REQUEST_MSG_INCORRECT_DATA));
       }
-      if (err.code === 11000) {
-        return next(new ConflictError('Пользователь с таким email уже существует.'));
+      if (err.name === 'MongoServerError') {
+        return next(new ConflictError(ERR_CONFLICT_MSG_SAMEEMAIL));
       }
       next(err);
     });
@@ -66,13 +72,17 @@ const updateUserProfile = (req, res, next) => {
 const getCurrentUser = (req, res, next) => {
   const id = req.user._id;
   User.findById(id)
+    .orFail(() => next(new NotFoundError(ERR_NOT_FOUND_MSG_USER)))
     .then((user) => {
-      if (!user) {
-        throw new NotFoundError('Невозможно отобразить информацию о пользователе');
-      }
-      res.send(user);
+      res.send({
+        name: user.name,
+        email: user.email,
+      });
     })
     .catch((err) => {
+      if (err.name === 'CastError') {
+        return next(new BadRequestError(ERR_BAD_REQUEST_MSG_INCORRECT_DATA));
+      }
       next(err);
     });
 };

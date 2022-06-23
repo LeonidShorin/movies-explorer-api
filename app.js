@@ -4,21 +4,22 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const { celebrateErrorHandler, generalErrorHandler } = require('./middlewares/errorHandler');
-const limiter = require('./middlewares/limiter');
+const { ERR_GENERAL_MSG } = require('./constants');
 const router = require('./routes/index');
+const limiter = require('./middlewares/limiter');
 
 const app = express();
 const { PORT = 3000, MONGO_URI } = process.env;
 
 async function start() {
-  await mongoose.connect(MONGO_URI || 'mongodb://localhost:27017/moviesdb', {
-    useNewUrlParser: true,
+  await mongoose.connect(MONGO_URI || 'mongodb://localhost:27017/moviesdb_dev', {
+    useNewUrlParser: true, // Приложение не запускается, если оставить эти опции активными
+    // useCreateIndex: true,
+    // useFindAndModify: false,
   });
   app.listen(PORT, () => {
-    // eslint-disable-next-line no-console
     console.log(`App listening on PORT ${PORT}`);
   });
 }
@@ -27,8 +28,8 @@ start()
     app.use(cors({
       origin: ['http://localhost:3001',
         'http://localhost:3000',
-        'http://api.movexplorerbyleonid.nomoredomains.work',
-        'https://api.movexplorerbyleonid.nomoredomains.work',
+        'http://movie-explorerbyolga.nomoredomains.work',
+        'https://movie-explorerbyolga.nomoredomains.work',
       ],
       credentials: true,
     }));
@@ -44,7 +45,6 @@ start()
     app.use(generalErrorHandler);
   })
   .catch(() => {
-    // eslint-disable-next-line no-console
-    console.log('Что-то пошло не так.');
+    console.log(ERR_GENERAL_MSG);
     process.exit();
   });
