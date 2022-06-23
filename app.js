@@ -28,8 +28,8 @@ start()
     app.use(cors({
       origin: ['http://localhost:3001',
         'http://localhost:3000',
-        'http://movie-explorerbyolga.nomoredomains.work',
-        'https://movie-explorerbyolga.nomoredomains.work',
+        'http://movexplorerbyleonid.nomoredomains.work',
+        'https://movexplorerbyleonid.nomoredomains.work',
       ],
       credentials: true,
     }));
